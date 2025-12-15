@@ -3,7 +3,7 @@
   "displayName": "Markdown Editor — Extended Settings",
   "icon": "media/logo.png",
   "description": "A full-featured WYSIWYG editor for markdown.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "akona",
   "private": true,
   "engines": {

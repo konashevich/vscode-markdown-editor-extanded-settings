@@ -93,3 +93,16 @@ body[data-full-width="1"] .vditor-preview .vditor-reset {
   margin: 0 !important;
   padding: 10px 20px !important;
 }
+
+.custom-syntax-highlight {
+  color: #0969da;
+  background-color: #ddf4ff;
+  border-radius: 3px;
+  padding: 0.2em 0.4em;
+  font-family: monospace;
+}
+
+.vditor--dark .custom-syntax-highlight {
+  color: #58a6ff;
+  background-color: rgba(56, 139, 253, 0.15);
+}

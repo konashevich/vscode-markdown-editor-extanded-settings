@@ -17,6 +17,7 @@ import 'vditor/dist/index.css'
 import { t, lang } from './lang'
 import { toolbar } from './toolbar'
 import { fixTableIr } from './fix-table-ir'
+import { setupCustomRenderer } from './custom-renderer'
 import './main.css'
 
 function initVditor(msg) {
@@ -61,6 +62,7 @@ function initVditor(msg) {
       handleToolbarClick()
       fixTableIr()
       fixPanelHover()
+      setupCustomRenderer(window.vditor)
     },
     input() {
       inputTimer && clearTimeout(inputTimer)
