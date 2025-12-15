@@ -71,3 +71,25 @@ body[data-use-vscode-theme-color="1"] .vditor {
 .jconfirm-buttons button {
   text-transform: none!important;
 }
+
+/* Antigravity Full Width Feature */
+body[data-full-width="1"] .vditor {
+  border: none !important;
+}
+
+body[data-full-width="1"] .vditor-ir .vditor-reset,
+body[data-full-width="1"] .vditor-ir .vditor-content,
+body[data-full-width="1"] .vditor-sv .vditor-reset,
+body[data-full-width="1"] .vditor-wysiwyg .vditor-reset {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 20px !important;
+}
+
+body[data-full-width="1"] .vditor-preview .vditor-reset {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 10px 20px !important;
+}

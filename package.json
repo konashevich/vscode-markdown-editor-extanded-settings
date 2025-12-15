@@ -71,6 +71,11 @@
         "markdown-editor.customCss": {
           "type": "string",
           "default": ""
+        },
+        "markdown-editor.enableFullWidth": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable full-width layout for the editor (removes max-width centering)."
         }
       }
     },

@@ -104,12 +104,18 @@ window.addEventListener('message', (e) => {
         } else {
           document.body.setAttribute('data-use-vscode-theme-color', '0')
         }
+
+        if (msg.options && msg.options.enableFullWidth) {
+          document.body.setAttribute('data-full-width', '1')
+        } else {
+          document.body.setAttribute('data-full-width', '0')
+        }
         try {
           initVditor(msg)
         } catch (error) {
           // reset options when error
           console.error(error)
-          initVditor({content: msg.content})
+          initVditor({ content: msg.content })
           saveVditorOptions()
         }
         console.log('initVditor')

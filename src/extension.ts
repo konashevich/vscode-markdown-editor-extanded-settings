@@ -110,7 +110,7 @@ class EditorPanel {
       // Enable javascript in the webview
       enableScripts: true,
 
-            localResourceRoots: [vscode.Uri.file("/"), ...this.getFolders()],
+      localResourceRoots: [vscode.Uri.file("/"), ...this.getFolders()],
       retainContextWhenHidden: true,
       enableCommandUris: true,
     }
@@ -189,11 +189,14 @@ class EditorPanel {
                 useVscodeThemeColor: EditorPanel.config.get<boolean>(
                   'useVscodeThemeColor'
                 ),
+                enableFullWidth: EditorPanel.config.get<boolean>(
+                  'enableFullWidth'
+                ),
                 ...this._context.globalState.get(KeyVditorOptions),
               },
               theme:
                 vscode.window.activeColorTheme.kind ===
-                vscode.ColorThemeKind.Dark
+                  vscode.ColorThemeKind.Dark
                   ? 'dark'
                   : 'light',
             })
