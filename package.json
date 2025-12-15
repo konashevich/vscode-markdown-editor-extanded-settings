@@ -1,10 +1,10 @@
 {
-  "name": "markdown-editor",
-  "displayName": "Markdown Editor",
+  "name": "markdown-editor-extended-settings",
+  "displayName": "Markdown Editor — Extended Settings",
   "icon": "media/logo.png",
   "description": "A full-featured WYSIWYG editor for markdown.",
-  "version": "0.1.13",
-  "publisher": "zaaack",
+  "version": "0.2.0",
+  "publisher": "akona",
   "private": true,
   "engines": {
     "vscode": "^1.47.0"
@@ -28,7 +28,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/zaaack/vscode-markdown-editor.git"
+    "url": "https://github.com/akona/vscode-markdown-editor-extanded-settings.git"
   },
   "main": "out/extension.js",
   "contributes": {
@@ -97,6 +97,7 @@
     "@types/node": "^12.12.0",
     "@types/vscode": "^1.47.0",
     "foy": "^0.2.5",
+    "sharp": "^0.34.5",
     "ts-node": "9.1.1",
     "typescript": "4.2.2"
   },

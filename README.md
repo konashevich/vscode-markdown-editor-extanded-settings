@@ -1,4 +1,10 @@
-# Markdown Editor — A full-featured WYSIWYG editor for markdown
+# Markdown Editor — Extended Settings
+
+> Fork of [zaaack/vscode-markdown-editor](https://github.com/zaaack/vscode-markdown-editor). This repository is a standalone fork that adds extended settings (for example, the `Enable Full Width` option) and a new project identity.
+
+See the original project here: https://github.com/zaaack/vscode-markdown-editor
+
+Project image (SVG): `media/markdown.svg`
 
 
 
@@ -21,7 +27,11 @@
 
 ## Install
 
-[https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor)
+This fork is packaged independently. Download and install the generated `.vsix` (example):
+
+```
+code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.0.vsix
+```
 
 ## Supported syntax
 
