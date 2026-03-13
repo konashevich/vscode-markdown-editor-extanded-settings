@@ -12,6 +12,10 @@ function showError(msg: string) {
   vscode.window.showErrorMessage(`[markdown-editor] ${msg}`)
 }
 
+function normalizeContent(content: string) {
+  return content.replace(/\r\n/g, '\n')
+}
+
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -91,8 +95,11 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   ) {
     const disposables: vscode.Disposable[] = []
     const fsPath = document.uri.fsPath
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri)
     let textEditTimer: NodeJS.Timeout | undefined
-    let updatingFromWebview = false
+    let applyingWebviewEdit = false
+    let pendingWebviewContent: string | undefined
+    let lastSyncedContent = document.getText()
 
     webviewPanel.title = NodePath.basename(fsPath)
     webviewPanel.webview.options = MarkdownEditorProvider.getWebviewOptions(
@@ -104,13 +111,21 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     )
 
     const syncToEditor = async (content: string) => {
-      updatingFromWebview = true
+      if (
+        normalizeContent(content) === normalizeContent(document.getText())
+      ) {
+        lastSyncedContent = document.getText()
+        return
+      }
+      applyingWebviewEdit = true
+      pendingWebviewContent = content
       try {
         const edit = new vscode.WorkspaceEdit()
         edit.replace(document.uri, this._documentRange(document), content)
         await vscode.workspace.applyEdit(edit)
+        lastSyncedContent = document.getText()
       } finally {
-        updatingFromWebview = false
+        applyingWebviewEdit = false
       }
     }
 
@@ -121,11 +136,48 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         theme?: 'dark' | 'light'
       } = { options: void 0 }
     ) => {
+      const content = document.getText()
+      const force = props.type === 'init'
+      if (
+        !force &&
+        normalizeContent(content) === normalizeContent(lastSyncedContent)
+      ) {
+        return
+      }
+      lastSyncedContent = content
       webviewPanel.webview.postMessage({
         command: 'update',
-        content: document.getText(),
+        content,
         ...props,
       })
+    }
+
+    const schedulePostUpdate = () => {
+      if (textEditTimer) {
+        clearTimeout(textEditTimer)
+      }
+      textEditTimer = setTimeout(() => {
+        postUpdate()
+      }, 75)
+    }
+
+    if (workspaceFolder) {
+      const relativePath = NodePath.relative(
+        workspaceFolder.uri.fsPath,
+        fsPath
+      ).replace(/\\/g, '/')
+      const fileWatcher = vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(workspaceFolder, relativePath)
+      )
+      disposables.push(
+        fileWatcher,
+        fileWatcher.onDidChange(() => {
+          schedulePostUpdate()
+        }),
+        fileWatcher.onDidCreate(() => {
+          schedulePostUpdate()
+        })
+      )
     }
 
     disposables.push(
@@ -133,15 +185,38 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         if (event.document.uri.toString() !== document.uri.toString()) {
           return
         }
-        if (updatingFromWebview) {
+        const currentContent = event.document.getText()
+        if (
+          pendingWebviewContent !== undefined &&
+          normalizeContent(currentContent) ===
+            normalizeContent(pendingWebviewContent)
+        ) {
+          pendingWebviewContent = undefined
+          lastSyncedContent = currentContent
           return
         }
-        if (textEditTimer) {
-          clearTimeout(textEditTimer)
+        if (applyingWebviewEdit) {
+          return
         }
-        textEditTimer = setTimeout(() => {
-          postUpdate()
-        }, 150)
+        schedulePostUpdate()
+      }),
+      vscode.workspace.onDidSaveTextDocument((savedDocument) => {
+        if (savedDocument.uri.toString() !== document.uri.toString()) {
+          return
+        }
+        schedulePostUpdate()
+      }),
+      vscode.workspace.onDidCloseTextDocument((closedDocument) => {
+        if (closedDocument.uri.toString() !== document.uri.toString()) {
+          return
+        }
+        webviewPanel.dispose()
+      }),
+      vscode.workspace.onDidChangeTextDocument((event) => {
+        if (event.document.uri.toString() !== document.uri.toString()) {
+          return
+        }
+        webviewPanel.title = `${event.document.isDirty ? '[edit]' : ''}${NodePath.basename(fsPath)}`
       }),
       webviewPanel.webview.onDidReceiveMessage(async (message) => {
         debug('msg from webview review', message, webviewPanel.active)
@@ -230,6 +305,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         }
       }),
       webviewPanel.onDidDispose(() => {
+        pendingWebviewContent = undefined
         if (textEditTimer) {
           clearTimeout(textEditTimer)
         }

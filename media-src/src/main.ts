@@ -19,6 +19,8 @@ import { toolbar } from './toolbar'
 import { fixTableIr } from './fix-table-ir'
 import './main.css'
 
+let applyingExtensionUpdate = false
+
 function initVditor(msg) {
   console.log('msg', msg)
   let inputTimer
@@ -63,6 +65,9 @@ function initVditor(msg) {
       fixPanelHover()
     },
     input() {
+      if (applyingExtensionUpdate) {
+        return
+      }
       inputTimer && clearTimeout(inputTimer)
       inputTimer = setTimeout(() => {
         vscode.postMessage({ command: 'edit', content: vditor.getValue() })
@@ -120,8 +125,17 @@ window.addEventListener('message', (e) => {
         }
         console.log('initVditor')
       } else {
-        vditor.setValue(msg.content)
-        console.log('setValue')
+        if (vditor.getValue() !== msg.content) {
+          applyingExtensionUpdate = true
+          try {
+            vditor.setValue(msg.content)
+          } finally {
+            setTimeout(() => {
+              applyingExtensionUpdate = false
+            }, 0)
+          }
+          console.log('setValue')
+        }
       }
       break
     }
