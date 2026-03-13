@@ -1,6 +1,60 @@
 import { t } from "./lang"
 import { confirm } from "./utils"
 
+function getEditorRange(): Range | undefined {
+	const mode = vditor.getCurrentMode()
+	const editor = vditor.vditor?.[mode]?.element as HTMLElement | undefined
+	const selection = window.getSelection()
+
+	if (selection && selection.rangeCount > 0) {
+		const range = selection.getRangeAt(0)
+		if (editor?.contains(range.commonAncestorContainer) || editor?.isEqualNode(range.commonAncestorContainer as Node)) {
+			return range.cloneRange()
+		}
+	}
+
+	const storedRange = vditor.vditor?.[mode]?.range as Range | undefined
+	return storedRange?.cloneRange()
+}
+
+function getCharBeforeRange(range: Range): string {
+	const mode = vditor.getCurrentMode()
+	const editor = vditor.vditor?.[mode]?.element as HTMLElement | undefined
+	if (!editor) return ''
+
+	const beforeRange = range.cloneRange()
+	beforeRange.selectNodeContents(editor)
+	beforeRange.setEnd(range.startContainer, range.startOffset)
+	return beforeRange.toString().slice(-1)
+}
+
+function restoreEditorRange(range: Range | undefined) {
+	if (!range) return
+	const selection = window.getSelection()
+	selection?.removeAllRanges()
+	selection?.addRange(range)
+	const mode = vditor.getCurrentMode()
+	vditor.vditor[mode].range = range.cloneRange()
+}
+
+function insertMarkdownLink() {
+	const range = getEditorRange()
+	const selectedText = (range?.toString() || '').trim()
+	const beforeChar = range ? getCharBeforeRange(range) : ''
+	const needsLeadingSpace = Boolean(beforeChar) && !/\s/.test(beforeChar)
+	const leadingSpace = needsLeadingSpace ? ' ' : ''
+
+	vditor.focus()
+	restoreEditorRange(range)
+
+	if (selectedText) {
+		vditor.updateValue(`${leadingSpace}[${selectedText}]()`)
+		return
+	}
+
+	vditor.insertValue(`${leadingSpace}[]()`)
+}
+
 const editInVsCodeIcon =
 	'<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path d="m388.7 968.2-228.2-112c-29.3-19.9-25.2-44.7-25.2-44.7V140.4c0-29.6 30.4-39.8 30.4-39.8l197.9-95.2c43.2-26.6 71.5 4.9 71.5 4.9L824.8 364 388.7 968.2z" fill="#2489ca"/><path d="m697.1 976.2c17 17.4 37.6 11.7 37.6 11.7l228.1-112.4c29.2-19.9 25.1-44.6 25.1-44.6V159.7c0-29.5-30.2-39.7-30.2-39.7L760 24.7c-43.2-26.7-71.5 4.8-71.5 4.8s36.4-26.2 54.2 23.4v887.5c0 6.1-1.3 12.1-3.9 17.5-5.2 10.5-16.5 20.3-43.6 16.2z" fill="#1070b3"/><path d="M363.6 730.5 229 627.9l-94.5 61.5 182.3 89.6 46.8-48.5zm24.8-24 298.4-284.4-298.4-284.4L560.2 31.8l329.2 159.9v461L560.2 812.4 388.4 706.5z" fill="#0877b9"/></svg>'
 
@@ -30,8 +84,9 @@ export const toolbar = [
 	  hotkey: '⌘K',
 	  icon: '<svg><use xlink:href="#vditor-icon-link"></use></svg>',
 	  name: 'link',
-	  prefix: '[',
-	  suffix: ']()',
+	  click() {
+		insertMarkdownLink()
+	  },
 	  tipPosition: 'n',
 	},
 	'|',
