@@ -1,6 +1,7 @@
 const Langs = {
   en_US: {
     save: 'Save',
+    editInVsCode: 'Edit In VS Code',
     copyMarkdown: 'Copy Markdown',
     copyHtml: 'Copy HTML',
     resetConfig: 'Reset config',
@@ -14,6 +15,7 @@ const Langs = {
   },
   zh_CN: {
     save: '保存',
+    editInVsCode: '在 VS Code 中编辑',
     copyMarkdown: '复制 Markdown',
     copyHtml: '复制 HTML',
     resetConfig: '重置配置',

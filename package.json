@@ -3,7 +3,7 @@
   "displayName": "Markdown Editor — Extended Settings",
   "icon": "media/logo.png",
   "description": "A full-featured WYSIWYG editor for markdown.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "akona",
   "private": true,
   "engines": {
@@ -23,7 +23,8 @@
   ],
   "activationEvents": [
     "onCommand:markdown-editor.openEditor",
-    "onWebviewPanel:markdown-editor",
+    "onCommand:markdown-editor.openTextEditor",
+    "onCustomEditor:markdown-editor.editor",
     "onLanguage:markdown"
   ],
   "repository": {
@@ -37,6 +38,26 @@
         "command": "markdown-editor.openEditor",
         "title": "Open with markdown editor",
         "category": "markdown-editor"
+      },
+      {
+        "command": "markdown-editor.openTextEditor",
+        "title": "Edit in Text Editor",
+        "category": "markdown-editor"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "markdown-editor.editor",
+        "displayName": "Markdown Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          },
+          {
+            "filenamePattern": "*.markdown"
+          }
+        ],
+        "priority": "default"
       }
     ],
     "menus": {
@@ -47,10 +68,27 @@
           "group": "navigation"
         }
       ],
+      "editor/title": [
+        {
+          "when": "resourceLangId == markdown && activeCustomEditorId != markdown-editor.editor",
+          "command": "markdown-editor.openEditor",
+          "group": "navigation"
+        },
+        {
+          "when": "activeCustomEditorId == markdown-editor.editor",
+          "command": "markdown-editor.openTextEditor",
+          "group": "navigation"
+        }
+      ],
       "editor/title/context": [
         {
           "when": "resourceLangId == markdown",
           "command": "markdown-editor.openEditor",
+          "group": "1_open"
+        },
+        {
+          "when": "activeCustomEditorId == markdown-editor.editor",
+          "command": "markdown-editor.openTextEditor",
           "group": "1_open"
         }
       ]
@@ -85,6 +123,12 @@
         "command": "markdown-editor.openEditor",
         "mac": "cmd+shift+alt+m",
         "when": "editorTextFocus && editorLangId == markdown"
+      },
+      {
+        "key": "ctrl+alt+e",
+        "command": "markdown-editor.openTextEditor",
+        "mac": "cmd+ctrl+e",
+        "when": "activeCustomEditorId == markdown-editor.editor"
       }
     ]
   },

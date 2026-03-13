@@ -17,7 +17,6 @@ import 'vditor/dist/index.css'
 import { t, lang } from './lang'
 import { toolbar } from './toolbar'
 import { fixTableIr } from './fix-table-ir'
-import { setupCustomRenderer } from './custom-renderer'
 import './main.css'
 
 function initVditor(msg) {
@@ -62,7 +61,6 @@ function initVditor(msg) {
       handleToolbarClick()
       fixTableIr()
       fixPanelHover()
-      setupCustomRenderer(window.vditor)
     },
     input() {
       inputTimer && clearTimeout(inputTimer)
@@ -153,5 +151,17 @@ window.addEventListener('message', (e) => {
 
 fixLinkClick()
 fixCut()
+
+window.addEventListener('keydown', (event) => {
+  const isMac = navigator.platform.toLowerCase().includes('mac')
+  const modifierPressed = isMac
+    ? event.metaKey && event.ctrlKey
+    : event.ctrlKey && event.altKey
+  if (modifierPressed && event.key.toLowerCase() === 'e') {
+    event.preventDefault()
+    event.stopPropagation()
+    vscode.postMessage({ command: 'edit-in-vscode' })
+  }
+})
 
 vscode.postMessage({ command: 'ready' })
