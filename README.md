@@ -21,6 +21,7 @@ This fork keeps the original custom Markdown editor workflow, then extends it wi
 - **Extended toolbar actions**: The toolbar adds copy Markdown, copy HTML, and improved link insertion actions.
 - **VS Code link handling**: Links opened from the editor are handed off through VS Code.
 - **IR table controls**: IR mode includes extra table editing controls.
+- **Responsive tables**: Tables now stretch with the width of the hosting editor window instead of staying at a fixed width.
 
 ## Features
 
@@ -32,6 +33,7 @@ This fork keeps the original custom Markdown editor workflow, then extends it wi
 - Uploaded, pasted, or drag-dropped images are written to disk automatically
 - Mermaid, KaTeX, Graphviz, ECharts, abc.js, and other Vditor-supported embedded content
 - Offline/local runtime assets for the webview editor, including Mermaid support
+- Responsive table layout that follows the current editor width
 - Explorer and editor-tab context menu integration
 - Keyboard shortcuts for opening the custom editor and returning to the text editor
 
@@ -42,7 +44,8 @@ For the broader editing/rendering feature set exposed by Vditor, see [vditor](ht
 This fork is packaged independently. Install the generated VSIX directly:
 
 ```bash
-code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.7.vsix
+code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.9.vsix
+
 ```
 
 ## Usage

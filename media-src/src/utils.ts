@@ -108,6 +108,8 @@ export function handleToolbarClick() {
 function normalizeResponsiveTables(root: ParentNode = document) {
   root.querySelectorAll<HTMLTableElement>('.vditor-reset table').forEach((table) => {
     table.removeAttribute('width')
+    table.style.setProperty('display', 'table', 'important')
+    table.style.setProperty('table-layout', 'fixed', 'important')
     table.style.setProperty('width', '100%', 'important')
     table.style.setProperty('max-width', '100%', 'important')
     table.style.setProperty('min-width', '0', 'important')
@@ -123,6 +125,7 @@ function normalizeResponsiveTables(root: ParentNode = document) {
       element.style.removeProperty('width')
       element.style.removeProperty('min-width')
       element.style.removeProperty('max-width')
+      element.style.removeProperty('white-space')
     })
 }
 
