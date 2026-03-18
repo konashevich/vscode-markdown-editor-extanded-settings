@@ -9,6 +9,8 @@ window.vscode =
   (window as any).acquireVsCodeApi && (window as any).acquireVsCodeApi()
 ;(window as any).global = window
 
+let responsiveTableCleanup: (() => void) | null = null
+
 declare global {
   export const vditor: Vditor
   export const vscode: any
@@ -101,6 +103,69 @@ export function handleToolbarClick() {
       saveVditorOptions()
     }, 500)
   })
+}
+
+function normalizeResponsiveTables(root: ParentNode = document) {
+  root.querySelectorAll<HTMLTableElement>('.vditor-reset table').forEach((table) => {
+    table.removeAttribute('width')
+    table.style.setProperty('width', '100%', 'important')
+    table.style.setProperty('max-width', '100%', 'important')
+    table.style.setProperty('min-width', '0', 'important')
+    table.style.setProperty('box-sizing', 'border-box')
+  })
+
+  root
+    .querySelectorAll<HTMLElement>(
+      '.vditor-reset table colgroup col, .vditor-reset table th, .vditor-reset table td'
+    )
+    .forEach((element) => {
+      element.removeAttribute('width')
+      element.style.removeProperty('width')
+      element.style.removeProperty('min-width')
+      element.style.removeProperty('max-width')
+    })
+}
+
+export function fixResponsiveTables() {
+  responsiveTableCleanup?.()
+
+  const root = document.querySelector('.vditor') ?? document.body
+  const syncTables = _.debounce(() => {
+    normalizeResponsiveTables(root)
+  }, 16)
+
+  syncTables()
+
+  const onResize = () => {
+    syncTables()
+  }
+
+  window.addEventListener('resize', onResize)
+
+  const mutationObserver = new MutationObserver(() => {
+    syncTables()
+  })
+  mutationObserver.observe(root, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['style', 'width'],
+  })
+
+  let resizeObserver: ResizeObserver | undefined
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      syncTables()
+    })
+    resizeObserver.observe(root)
+  }
+
+  responsiveTableCleanup = () => {
+    window.removeEventListener('resize', onResize)
+    mutationObserver.disconnect()
+    resizeObserver?.disconnect()
+    syncTables.cancel()
+  }
 }
 
 export function fixLinkClick() {

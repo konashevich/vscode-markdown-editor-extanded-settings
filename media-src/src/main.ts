@@ -6,6 +6,7 @@ import {
   fixDarkTheme,
   fixLinkClick,
   fixPanelHover,
+  fixResponsiveTables,
   handleToolbarClick,
   saveVditorOptions,
 } from './utils'
@@ -62,6 +63,7 @@ function initVditor(msg) {
       fixDarkTheme()
       handleToolbarClick()
       fixTableIr()
+      fixResponsiveTables()
       fixPanelHover()
     },
     input() {
