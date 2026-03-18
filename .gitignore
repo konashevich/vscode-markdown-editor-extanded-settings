@@ -50,7 +50,6 @@ typings/
 
 # Output of 'npm pack'
 *.tgz
-*.vsix
 
 # Yarn Integrity file
 .yarn-integrity
@@ -66,9 +65,6 @@ media/dist/
 media/vditor/dist/
 media-src/dist/
 media-src/dist-ssr/
-
-# Packaged artifacts
-artifacts/*.vsix
 
 # Package manager caches
 .pnpm-store/

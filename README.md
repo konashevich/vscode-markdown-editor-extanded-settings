@@ -1,88 +1,157 @@
 # Markdown Editor — Extended Settings
 
-> Fork of [zaaack/vscode-markdown-editor](https://github.com/zaaack/vscode-markdown-editor). This repository is a standalone fork that adds extended settings (for example, the `Enable Full Width` option) and a new project identity.
+Standalone fork of [zaaack/vscode-markdown-editor](https://github.com/zaaack/vscode-markdown-editor) with a substantially expanded feature set, updated bundled editor runtime, and fork-specific workflow improvements.
 
-See the original project here: https://github.com/zaaack/vscode-markdown-editor
-
-Project image (SVG): `media/markdown.svg`
-
-
+Original project: https://github.com/zaaack/vscode-markdown-editor
 
 ## Demo
 
 ![demo](./demo.gif)
 
+## What This Fork Adds
+
+This fork keeps the original custom Markdown editor workflow, then extends it with practical VS Code integration and editor customisation features that are not described in the upstream README.
+
+- **Mermaid diagrams**: Added Mermaid diagrams render directly inside the custom editor.
+- **Live sync**: Changes stay in sync with the underlying Markdown file while you edit.
+- **Return to text editor**: You can jump back to the normal VS Code text editor from the toolbar or command palette.
+- **Remembered editor preferences**: The editor keeps your preferred layout and UI options, and includes a reset action when you want to start fresh.
+- **Layout and theme control**: The editor can follow the active VS Code theme, switch to a full-width layout, and accept custom CSS overrides.
+- **Configurable image saving**: Uploaded, pasted, or dropped images can be saved to a configurable folder.
+- **Extended toolbar actions**: The toolbar adds copy Markdown, copy HTML, and improved link insertion actions.
+- **VS Code link handling**: Links opened from the editor are handed off through VS Code.
+- **IR table controls**: IR mode includes extra table editing controls.
+
 ## Features
 
-- What You See Is What You Get (WYSIWYG)
-- Auto sync changes between the VSCode editor and webview
-- Copy markdown/html
-- Uploaded/pasted/drag-dropped images will be auto-saved to the `assets` folder
-- Multi-theme support
-- Shortcut keys
-- Multiple editting modes: instant Rendering mode (**Recommand!**) / WYSIWYG mode / split screen mode
-- Markdown extensions
-- Multiple graph support including KaTeX / Mermaid / Graphviz / ECharts / abc.js(notation) / ...
-- For more usage please see [vditor](https://github.com/Vanessa219/vditor)
+- WYSIWYG Markdown editing with Vditor
+- Multiple editing modes: IR, WYSIWYG, and split-view/source-oriented workflows provided by Vditor
+- Auto-sync with the underlying Markdown file when either side changes
+- Save directly from the editor toolbar
+- Copy rendered HTML or raw Markdown from the editor
+- Uploaded, pasted, or drag-dropped images are written to disk automatically
+- Mermaid, KaTeX, Graphviz, ECharts, abc.js, and other Vditor-supported embedded content
+- Offline/local runtime assets for the webview editor, including Mermaid support
+- Explorer and editor-tab context menu integration
+- Keyboard shortcuts for opening the custom editor and returning to the text editor
+
+For the broader editing/rendering feature set exposed by Vditor, see [vditor](https://github.com/Vanessa219/vditor).
 
 ## Install
 
-This fork is packaged independently. Download and install the generated `.vsix` (example):
+This fork is packaged independently. Install the generated VSIX directly:
 
+```bash
+code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.7.vsix
 ```
-code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.0.vsix
-```
-
-## Supported syntax
-
-[demo article](https://ld246.com/guide/markdown)
 
 ## Usage
 
-### 1. Command mode in markdown file
+### Open the custom editor
 
-- open a markdown file
-- type `cmd-shift-p` to enter command mode
-- type `markdown-editor: Open with markdown editor`
+Use any of the following:
 
-### 2. Key bindings
+- Command Palette: `markdown-editor: Open with markdown editor`
+- Explorer context menu on a Markdown file
+- Editor tab title menu on a Markdown file
+- Shortcut: `Ctrl+Shift+Alt+M` on Windows/Linux, `Cmd+Shift+Alt+M` on macOS
 
-- open a markdown file
-- type `ctrl+shift+alt+m` for win or `cmd+shift+alt+m` for mac
+### Return to the text editor
 
-### 3. Explorer Context menu
+Use any of the following while the custom editor is active:
 
-- right click on markdown file
-- then click `Open with markdown editor`
+- Command Palette: `markdown-editor: Edit in Text Editor`
+- Editor tab title menu
+- Shortcut: `Ctrl+Alt+E` on Windows/Linux, `Cmd+Ctrl+E` on macOS
+- Toolbar button inside the custom editor
 
-### 4. Editor title context menu
+## Configuration
 
-- right click on a opened markdown file's tab title
-- then click `Open with markdown editor`
+The fork adds and documents these settings under the `markdown-editor` namespace:
 
-### Custom CSS (custom layout and vditor personalization)
+### `markdown-editor.imageSaveFolder`
 
-Edit your settings.json and add
+Controls where uploaded images are stored. The default is `assets`, relative to the current Markdown file.
 
+Supported template variables:
+
+- `${projectRoot}`
+- `${file}`
+- `${fileBasenameNoExtension}`
+- `${dir}`
+
+Examples:
+
+```json
+{
+	"markdown-editor.imageSaveFolder": "assets"
+}
 ```
-"markdown-editor.customCss": "my custom css rules"
 
-// Eg: "markdown-editor.customCss": ".vditor-ir pre.vditor-reset {line-height: 32px;padding-right: calc(100% - 800px) !important; margin-left: 100px;    font-family: system-ui !important;}"
+```json
+{
+	"markdown-editor.imageSaveFolder": "${projectRoot}/assets"
+}
 ```
+
+```json
+{
+	"markdown-editor.imageSaveFolder": "${dir}/${fileBasenameNoExtension}-assets"
+}
+```
+
+### `markdown-editor.useVscodeThemeColor`
+
+Uses the current VS Code theme background color for the editor surface.
+
+```json
+{
+	"markdown-editor.useVscodeThemeColor": true
+}
+```
+
+### `markdown-editor.enableFullWidth`
+
+Enables the fork's full-width layout instead of the narrower centered layout.
+
+```json
+{
+	"markdown-editor.enableFullWidth": true
+}
+```
+
+### `markdown-editor.customCss`
+
+Injects custom CSS directly into the webview. This is useful for typography, spacing, or layout overrides.
+
+```json
+{
+	"markdown-editor.customCss": ".vditor-ir pre.vditor-reset { line-height: 32px; }"
+}
+```
+
+## Toolbar Extensions
+
+In addition to the standard Vditor controls, this fork adds or customises:
+
+- `Save`
+- `Edit In VS Code`
+- `Copy Markdown`
+- `Copy HTML`
+- `Reset config`
+- Smarter Markdown link insertion
+
+## Supported Syntax
+
+See the Vditor demo article for the underlying Markdown feature coverage:
+
+[demo article](https://ld246.com/guide/markdown)
 
 ## Acknowledgement
 
 - [vscode](https://github.com/microsoft/vscode)
 - [vditor](https://github.com/Vanessa219/vditor)
 
-## Todo
-
-- [ ] Using [Custom Text Editor](https://code.visualstudio.com/api/extension-guides/custom-editors#custom-text-editor) ([demo](https://github.com/gera2ld/markmap-vscode))
-
 ## License
 
 MIT
-
-## Support
-
-If you like this extension make sure to star the repo. I am always looking for new ideas and feedback. In addition, it is possible to [donate via paypal](https://www.paypal.me/zaaack).
