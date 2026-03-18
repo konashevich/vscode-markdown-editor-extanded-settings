@@ -50,6 +50,7 @@ typings/
 
 # Output of 'npm pack'
 *.tgz
+*.vsix
 
 # Yarn Integrity file
 .yarn-integrity
@@ -58,4 +59,21 @@ typings/
 .env
 
 lib
-out
+
+# Build output
+out/
+media/dist/
+media/vditor/dist/
+media-src/dist/
+media-src/dist-ssr/
+
+# Packaged artifacts
+artifacts/*.vsix
+
+# Package manager caches
+.pnpm-store/
+media-src/.parcel-cache/
+media-src/.cache/
+
+# OS metadata
+.DS_Store

@@ -96,6 +96,9 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     const disposables: vscode.Disposable[] = []
     const fsPath = document.uri.fsPath
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri)
+    const vditorBaseUri = webviewPanel.webview
+      .asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'media', 'vditor'))
+      .toString()
     let textEditTimer: NodeJS.Timeout | undefined
     let applyingWebviewEdit = false
     let pendingWebviewContent: string | undefined
@@ -132,6 +135,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     const postUpdate = async (
       props: {
         type?: 'init' | 'update'
+        cdn?: string
         options?: any
         theme?: 'dark' | 'light'
       } = { options: void 0 }
@@ -225,6 +229,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
           case 'ready':
             await postUpdate({
               type: 'init',
+              cdn: vditorBaseUri,
               options: {
                 useVscodeThemeColor: MarkdownEditorProvider.config.get<boolean>(
                   'useVscodeThemeColor'

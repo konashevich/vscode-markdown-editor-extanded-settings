@@ -24,7 +24,7 @@ let applyingExtensionUpdate = false
 function initVditor(msg) {
   console.log('msg', msg)
   let inputTimer
-  let defaultOptions: any = {}
+  let defaultOptions: any = msg.cdn ? { cdn: msg.cdn } : {}
   if (msg.theme === 'dark') {
     // vditor.setTheme('dark', 'dark')
     defaultOptions = merge(defaultOptions, {
