@@ -240,8 +240,10 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
                 ...this._context.globalState.get(KeyVditorOptions),
               },
               theme:
+                (vscode.window.activeColorTheme.kind ===
+                vscode.ColorThemeKind.Dark ||
                 vscode.window.activeColorTheme.kind ===
-                vscode.ColorThemeKind.Dark
+                vscode.ColorThemeKind.HighContrast)
                   ? 'dark'
                   : 'light',
             })
@@ -357,6 +359,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     const toMediaPath = (f: string) => `media/dist/${f}`
     const JsFiles = ['main.js'].map(toMediaPath).map(toUri)
     const CssFiles = ['main.css'].map(toMediaPath).map(toUri)
+    const iconScript = toUri('media/vditor/dist/js/icons/ant.js')
 
     return (
       `<!DOCTYPE html>
@@ -378,7 +381,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			<body>
 				<div id="app"></div>
 
-
+				<script id="vditorIconScript" src="${iconScript}"></script>
 				${JsFiles.map((f) => `<script src="${f}"></script>`).join('\n')}
 			</body>
 			</html>`
