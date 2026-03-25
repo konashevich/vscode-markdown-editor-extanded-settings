@@ -3,6 +3,8 @@ import * as NodePath from 'path'
 
 const KeyVditorOptions = 'vditor.options'
 const MarkdownEditorViewType = 'markdown-editor.editor'
+const SupportedSchemes = new Set(['file', 'untitled'])
+const SupportedMarkdownExtensions = new Set(['.md', '.markdown'])
 
 function debug(...args: any[]) {
   console.log(...args)
@@ -16,17 +18,144 @@ function normalizeContent(content: string) {
   return content.replace(/\r\n/g, '\n')
 }
 
+function isSupportedMarkdownUri(uri: vscode.Uri) {
+  return (
+    SupportedSchemes.has(uri.scheme) &&
+    SupportedMarkdownExtensions.has(NodePath.extname(uri.path).toLowerCase())
+  )
+}
+
+function getActiveTabInput() {
+  return vscode.window.tabGroups.activeTabGroup.activeTab?.input
+}
+
+function isUriInAnyDiffTab(uri: vscode.Uri) {
+  return vscode.window.tabGroups.all.some((group) =>
+    group.tabs.some((tab) => {
+      const input = tab.input
+      return (
+        input instanceof vscode.TabInputTextDiff &&
+        (input.original.toString() === uri.toString() ||
+          input.modified.toString() === uri.toString())
+      )
+    })
+  )
+}
+
+function hasVisibleDiffCompanion(uri: vscode.Uri) {
+  return vscode.window.visibleTextEditors.some((editor) => {
+    const otherUri = editor.document.uri
+    return (
+      otherUri.toString() !== uri.toString() &&
+      otherUri.path === uri.path &&
+      otherUri.scheme !== uri.scheme &&
+      (otherUri.scheme === 'git' || uri.scheme === 'git')
+    )
+  })
+}
+
+function getCommandTarget(uri?: vscode.Uri) {
+  if (uri) {
+    return uri
+  }
+
+  const activeEditorUri = vscode.window.activeTextEditor?.document.uri
+  if (activeEditorUri) {
+    return activeEditorUri
+  }
+
+  const activeInput = getActiveTabInput()
+  if (
+    activeInput instanceof vscode.TabInputText ||
+    activeInput instanceof vscode.TabInputCustom
+  ) {
+    return activeInput.uri
+  }
+
+  return undefined
+}
+
+function isDiffContextForUri(uri: vscode.Uri) {
+  const activeInput = getActiveTabInput()
+  return (
+    activeInput instanceof vscode.TabInputTextDiff &&
+    (activeInput.original.toString() === uri.toString() ||
+      activeInput.modified.toString() === uri.toString())
+  )
+}
+
 export function activate(context: vscode.ExtensionContext) {
+  const suppressedAutoOpenUris = new Set<string>()
+  const pendingAutoOpenUris = new Set<string>()
+  const autoOpenTimers = new Map<string, NodeJS.Timeout>()
+
+  const maybeAutoOpenCustomEditor = async (editor?: vscode.TextEditor) => {
+    if (!editor) {
+      return
+    }
+
+    const { document } = editor
+    const uriKey = document.uri.toString()
+    if (autoOpenTimers.has(uriKey)) {
+      clearTimeout(autoOpenTimers.get(uriKey)!)
+    }
+
+    autoOpenTimers.set(
+      uriKey,
+      setTimeout(async () => {
+        autoOpenTimers.delete(uriKey)
+
+        const activeEditor = vscode.window.activeTextEditor
+        const activeInput = getActiveTabInput()
+
+        if (
+          !activeEditor ||
+          activeEditor.document.uri.toString() !== uriKey ||
+          activeEditor.document.languageId !== 'markdown' ||
+          !isSupportedMarkdownUri(activeEditor.document.uri) ||
+          suppressedAutoOpenUris.has(uriKey) ||
+          pendingAutoOpenUris.has(uriKey) ||
+          !(activeInput instanceof vscode.TabInputText) ||
+          activeInput.uri.toString() !== uriKey ||
+          isUriInAnyDiffTab(activeEditor.document.uri) ||
+          hasVisibleDiffCompanion(activeEditor.document.uri)
+        ) {
+          return
+        }
+
+        pendingAutoOpenUris.add(uriKey)
+        try {
+          await vscode.commands.executeCommand(
+            'vscode.openWith',
+            activeEditor.document.uri,
+            MarkdownEditorViewType
+          )
+        } finally {
+          pendingAutoOpenUris.delete(uriKey)
+        }
+      }, 50)
+    )
+  }
+
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'markdown-editor.openEditor',
       async (uri?: vscode.Uri, ...args) => {
         debug('command', uri, args)
-        const target = uri || vscode.window.activeTextEditor?.document.uri
+        const target = getCommandTarget(uri)
         if (!target) {
           showError(`Cannot find markdown file!`)
           return
         }
+        if (isDiffContextForUri(target)) {
+          showError(`Markdown editor is unavailable in diff editors.`)
+          return
+        }
+        if (!isSupportedMarkdownUri(target)) {
+          showError(`Markdown editor can only open local markdown files.`)
+          return
+        }
+        suppressedAutoOpenUris.delete(target.toString())
         await vscode.commands.executeCommand(
           'vscode.openWith',
           target,
@@ -38,11 +167,12 @@ export function activate(context: vscode.ExtensionContext) {
       'markdown-editor.openTextEditor',
       async (uri?: vscode.Uri, ...args) => {
         debug('command', uri, args)
-        const target = uri || vscode.window.activeTextEditor?.document.uri
+        const target = getCommandTarget(uri)
         if (!target) {
           showError(`Cannot find markdown file!`)
           return
         }
+        suppressedAutoOpenUris.add(target.toString())
         await vscode.commands.executeCommand('vscode.openWith', target, 'default')
       }
     ),
@@ -55,10 +185,17 @@ export function activate(context: vscode.ExtensionContext) {
           enableFindWidget: true,
         },
       }
-    )
+    ),
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      void maybeAutoOpenCustomEditor(editor)
+    }),
+    vscode.window.tabGroups.onDidChangeTabs(() => {
+      void maybeAutoOpenCustomEditor(vscode.window.activeTextEditor)
+    })
   )
 
   context.globalState.setKeysForSync([KeyVditorOptions])
+  void maybeAutoOpenCustomEditor(vscode.window.activeTextEditor)
 }
 
 class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {

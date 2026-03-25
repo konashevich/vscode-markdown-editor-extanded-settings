@@ -3,11 +3,11 @@
   "displayName": "Markdown Editor — Extended Settings",
   "icon": "media/logo.png",
   "description": "A full-featured WYSIWYG editor for markdown.",
-  "version": "0.2.14",
+  "version": "0.2.18",
   "publisher": "akona",
   "private": true,
   "engines": {
-    "vscode": "^1.47.0"
+    "vscode": "^1.64.0"
   },
   "categories": [
     "Programming Languages",
@@ -59,13 +59,23 @@
         "displayName": "Markdown Editor",
         "selector": [
           {
-            "filenamePattern": "*.md"
+            "filenamePattern": "*.md",
+            "scheme": "file"
           },
           {
-            "filenamePattern": "*.markdown"
+            "filenamePattern": "*.md",
+            "scheme": "untitled"
+          },
+          {
+            "filenamePattern": "*.markdown",
+            "scheme": "file"
+          },
+          {
+            "filenamePattern": "*.markdown",
+            "scheme": "untitled"
           }
         ],
-        "priority": "default"
+        "priority": "option"
       }
     ],
     "menus": {
@@ -78,7 +88,7 @@
       ],
       "editor/title": [
         {
-          "when": "resourceLangId == markdown && activeCustomEditorId != markdown-editor.editor",
+          "when": "resourceLangId == markdown && !isInDiffEditor && activeCustomEditorId != markdown-editor.editor",
           "command": "markdown-editor.openEditor",
           "group": "navigation"
         },
@@ -90,7 +100,7 @@
       ],
       "editor/title/context": [
         {
-          "when": "resourceLangId == markdown",
+          "when": "resourceLangId == markdown && !isInDiffEditor",
           "command": "markdown-editor.openEditor",
           "group": "1_open"
         },
@@ -147,7 +157,7 @@
   },
   "devDependencies": {
     "@types/node": "^12.12.0",
-    "@types/vscode": "^1.47.0",
+    "@types/vscode": "^1.64.0",
     "foy": "^0.2.5",
     "sharp": "^0.34.5",
     "ts-node": "9.1.1",

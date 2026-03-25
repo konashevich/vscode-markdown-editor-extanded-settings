@@ -10,3 +10,6 @@ esbuild.js
 Foyfile.ts
 yarn.lock
 yarn-error.log
+patch.css.js
+patch_extension.js
+pnpm-lock.yaml
