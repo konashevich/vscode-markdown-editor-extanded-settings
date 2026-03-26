@@ -6,7 +6,7 @@ Original project: https://github.com/zaaack/vscode-markdown-editor
 
 ## Demo
 
-![demo](./demo.gif)
+![demo](./media/hero.png)
 
 ## What This Fork Adds
 
@@ -44,7 +44,7 @@ For the broader editing/rendering feature set exposed by Vditor, see [vditor](ht
 This fork is packaged independently. Install the generated VSIX directly:
 
 ```bash
-code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.14.vsix
+code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.21.vsix
 
 ```
 
