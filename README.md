@@ -52,12 +52,11 @@ code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.21.vs
 
 ### Open the custom editor
 
-Use any of the following:
+Use the Explorer right-click context menu on a Markdown file:
 
-- Command Palette: `markdown-editor: Open with markdown editor`
 - Explorer context menu on a Markdown file
-- Editor tab title menu on a Markdown file
-- Shortcut: `Ctrl+Shift+Alt+M` on Windows/Linux, `Cmd+Shift+Alt+M` on macOS
+
+Markdown files no longer auto-switch into the custom editor when opened normally.
 
 ### Return to the text editor
 
