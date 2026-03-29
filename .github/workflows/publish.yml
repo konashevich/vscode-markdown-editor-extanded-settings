@@ -13,5 +13,13 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm install
+      - run: npm --prefix media-src install
       - name: Publish to Marketplace
-        run: npx @vscode/vsce publish -p ${{ secrets.VSCE_PAT }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT != '' && secrets.VSCE_PAT || secrets.VS_MARKETPLACE_TOKEN }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "No Marketplace token configured in VSCE_PAT or VS_MARKETPLACE_TOKEN" >&2
+            exit 1
+          fi
+          npx @vscode/vsce publish -p "$VSCE_PAT"
