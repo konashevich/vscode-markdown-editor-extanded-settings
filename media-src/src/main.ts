@@ -18,6 +18,7 @@ import 'vditor/dist/index.css'
 import { t, lang } from './lang'
 import { toolbar } from './toolbar'
 import { fixTableIr } from './fix-table-ir'
+import { setupCustomRenderer } from './custom-renderer'
 import './main.css'
 
 let applyingExtensionUpdate = false
@@ -60,6 +61,13 @@ function initVditor(msg) {
     toolbarConfig: { pin: true },
     ...defaultOptions,
     after() {
+      const wikiEnabled = Boolean(msg.wiki && msg.wiki.enabled)
+      setupCustomRenderer(window.vditor, {
+        enabled: wikiEnabled,
+      })
+      if (wikiEnabled && typeof msg.content === 'string' && msg.content.includes('[[')) {
+        vditor.setValue(msg.content)
+      }
       fixDarkTheme()
       handleToolbarClick()
       fixTableIr()
@@ -106,6 +114,10 @@ window.addEventListener('message', (e) => {
   switch (msg.command) {
     case 'update': {
       if (msg.type === 'init') {
+        document.body.setAttribute(
+          'data-wiki-file',
+          msg.wiki && msg.wiki.enabled ? '1' : '0'
+        )
         if (msg.options && msg.options.useVscodeThemeColor) {
           document.body.setAttribute('data-use-vscode-theme-color', '1')
         } else {

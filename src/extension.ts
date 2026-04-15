@@ -1,8 +1,15 @@
 import * as vscode from 'vscode'
 import * as NodePath from 'path'
+import {
+  getWikiDocumentContext,
+  getWikiRoot,
+  isWikiFile,
+  resolveWikiLink,
+} from './wiki'
 
 const KeyVditorOptions = 'vditor.options'
 const MarkdownEditorViewType = 'markdown-editor.editor'
+const WikiFileContextKey = 'markdown-editor.isWikiFile'
 const SupportedSchemes = new Set(['file', 'untitled'])
 const SupportedMarkdownExtensions = new Set(['.md', '.markdown'])
 
@@ -34,17 +41,17 @@ function getCommandTarget(uri?: vscode.Uri) {
     return uri
   }
 
-  const activeEditorUri = vscode.window.activeTextEditor?.document.uri
-  if (activeEditorUri) {
-    return activeEditorUri
-  }
-
   const activeInput = getActiveTabInput()
   if (
     activeInput instanceof vscode.TabInputText ||
     activeInput instanceof vscode.TabInputCustom
   ) {
     return activeInput.uri
+  }
+
+  const activeEditorUri = vscode.window.activeTextEditor?.document.uri
+  if (activeEditorUri) {
+    return activeEditorUri
   }
 
   return undefined
@@ -59,7 +66,20 @@ function isDiffContextForUri(uri: vscode.Uri) {
   )
 }
 
+async function updateEditorContexts() {
+  const target = getCommandTarget()
+  await vscode.commands.executeCommand(
+    'setContext',
+    WikiFileContextKey,
+    isWikiFile(target)
+  )
+}
+
 export function activate(context: vscode.ExtensionContext) {
+  const refreshContexts = () => {
+    void updateEditorContexts()
+  }
+
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'markdown-editor.openEditor',
@@ -97,6 +117,25 @@ export function activate(context: vscode.ExtensionContext) {
         await vscode.commands.executeCommand('vscode.openWith', target, 'default')
       }
     ),
+    vscode.commands.registerCommand(
+      'markdown-editor.showWikiStatus',
+      async (uri?: vscode.Uri, ...args) => {
+        debug('command', uri, args)
+        const target = getCommandTarget(uri)
+        const root = target ? getWikiRoot(target) : undefined
+        if (!target || !root) {
+          vscode.window.showInformationMessage(
+            '[markdown-editor] Wiki links are enabled for Markdown files inside a wiki folder.'
+          )
+          return
+        }
+
+        const wikiRootLabel = vscode.workspace.asRelativePath(root, false)
+        vscode.window.showInformationMessage(
+          `[markdown-editor] Wiki links are enabled for this file. Root: ${wikiRootLabel}`
+        )
+      }
+    ),
     vscode.window.registerCustomEditorProvider(
       MarkdownEditorViewType,
       new MarkdownEditorProvider(context),
@@ -106,10 +145,15 @@ export function activate(context: vscode.ExtensionContext) {
           enableFindWidget: true,
         },
       }
-    )
+    ),
+    vscode.window.onDidChangeActiveTextEditor(refreshContexts),
+    vscode.window.tabGroups.onDidChangeTabs(refreshContexts),
+    vscode.workspace.onDidOpenTextDocument(refreshContexts),
+    vscode.workspace.onDidCloseTextDocument(refreshContexts)
   )
 
   context.globalState.setKeysForSync([KeyVditorOptions])
+  refreshContexts()
 }
 
 class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
@@ -146,6 +190,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   ) {
     const disposables: vscode.Disposable[] = []
     const fsPath = document.uri.fsPath
+    const wiki = getWikiDocumentContext(document.uri)
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri)
     const vditorBaseUri = webviewPanel.webview
       .asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'media', 'vditor'))
@@ -189,6 +234,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         cdn?: string
         options?: any
         theme?: 'dark' | 'light'
+        wiki?: ReturnType<typeof getWikiDocumentContext>
       } = { options: void 0 }
     ) => {
       const content = document.getText()
@@ -297,6 +343,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
                 vscode.ColorThemeKind.HighContrast)
                   ? 'dark'
                   : 'light',
+              wiki,
             })
             break
           case 'save-options':
@@ -358,6 +405,56 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
               url = NodePath.resolve(NodePath.dirname(fsPath), url)
             }
             await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(url))
+            break
+          }
+          case 'open-wikilink': {
+            const resolution = await resolveWikiLink(document.uri, String(message.target))
+
+            switch (resolution.kind) {
+              case 'disabled':
+                showError(`Wiki links are only enabled for Markdown files inside a wiki folder.`)
+                break
+              case 'invalid':
+                showError(`Invalid wiki link target.`)
+                break
+              case 'missing':
+                showError(
+                  `Wiki page "${message.target}" was not found under "${vscode.workspace.asRelativePath(
+                    resolution.root,
+                    false
+                  )}".`
+                )
+                break
+              case 'ambiguous': {
+                const picked = await vscode.window.showQuickPick(
+                  resolution.candidates.map((candidate) => ({
+                    label: NodePath.basename(candidate.fsPath),
+                    description: vscode.workspace.asRelativePath(candidate, false),
+                    uri: candidate,
+                  })),
+                  {
+                    title: `Select wiki page for "${message.target}"`,
+                    placeHolder: 'Multiple wiki pages match this link.',
+                  }
+                )
+
+                if (picked?.uri) {
+                  await vscode.commands.executeCommand(
+                    'vscode.openWith',
+                    picked.uri,
+                    MarkdownEditorViewType
+                  )
+                }
+                break
+              }
+              case 'resolved':
+                await vscode.commands.executeCommand(
+                  'vscode.openWith',
+                  resolution.target,
+                  MarkdownEditorViewType
+                )
+                break
+            }
             break
           }
         }

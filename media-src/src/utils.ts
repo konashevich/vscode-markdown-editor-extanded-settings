@@ -175,10 +175,24 @@ export function fixLinkClick() {
   const openLink = (url: string) => {
     vscode.postMessage({ command: 'open-link', href: url })
   }
-  document.addEventListener('click', e=> {
-    let el = e.target as HTMLAnchorElement
-    if (el.tagName === 'A') {
-      openLink(el.href)
+  const openWikiLink = (target: string) => {
+    vscode.postMessage({ command: 'open-wikilink', target })
+  }
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement | null
+    const wikiElement = target?.closest<HTMLElement>('[data-wiki-link="1"]')
+    if (wikiElement?.dataset.wikiTarget) {
+      e.preventDefault()
+      e.stopPropagation()
+      openWikiLink(wikiElement.dataset.wikiTarget)
+      return
+    }
+
+    const linkElement = target?.closest<HTMLAnchorElement>('a[href]')
+    if (linkElement?.href) {
+      e.preventDefault()
+      e.stopPropagation()
+      openLink(linkElement.href)
     }
   })
   window.open = (url: string, ...args: any[]) => {
