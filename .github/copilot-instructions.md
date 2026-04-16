@@ -10,12 +10,15 @@ When working in this repository, treat VSIX packaging as a release step.
 
 When asked to publish or update the extension on the Marketplace, follow this workflow:
 
-1. **Sync & Version Bump**: Ensure local repo is up-to-date (`git pull origin master`) and bump the version (`npm version patch` or `minor`/`major`). This automatically updates package files and creates a git tag.
-2. **Update Documentation**: Update any version-specific links or installation instructions in `README.md`.
-3. **Build & Package**:
-   - Re-bundle the assets: `npx foy build`
-   - Generate the VSIX artifact: `npx vsce package --out artifacts/markdown-editor-extended-settings-[version].vsix`
-4. **Publish**: Deploy the new version using the Personal Access Token (PAT).
-   - Command: `npx @vscode/vsce publish -p <PAT>`
-   - Ask the user for the PAT if they haven't provided it, or use `npx @vscode/vsce publish` if a PAT is set via the `VSCE_PAT` environment variable or successful `vsce login oleksiiko`.
-5. **Finalize Git**: Push the version bump, changes, and the new tag to GitHub: `git push origin master --tags`.
+1. **Persist Credentials Once**: Keep the Visual Studio Marketplace PAT in the local `.env` file as `VSCE_PAT=...` and mirror it to the repository GitHub Actions secrets `VSCE_PAT` and `VS_MARKETPLACE_TOKEN`.
+2. **Use the Automated Release Command**: Run `npm run release:marketplace` from the repository root.
+3. **What the Release Command Does**:
+   - fast-forwards from `origin/master`
+   - bumps the patch version in aligned package files
+   - updates the `README.md` install example to the new VSIX version
+   - rebuilds the extension assets
+   - packages `artifacts/markdown-editor-extended-settings-[version].vsix`
+   - loads `VSCE_PAT` from `.env` automatically and publishes with `@vscode/vsce`
+   - pushes `master` and the new tag to GitHub
+4. **GitHub Actions Automation**: `publish.yml` is the automatic Marketplace workflow for `v*` tags. Keep `main.yml` as a manual fallback only.
+5. **Never Prompt for the PAT Again**: If `.env` or the GitHub secret already exists, use it directly instead of asking the user again.
