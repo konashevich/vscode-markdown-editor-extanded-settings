@@ -4,10 +4,13 @@ media-src
 node_modules
 src
 .gitignore
+.env
+.env.*
 tsconfig.json
 webpack.config.js
 esbuild.js
 Foyfile.ts
+scripts
 yarn.lock
 yarn-error.log
 patch.css.js
