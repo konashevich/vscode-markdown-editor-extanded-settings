@@ -12,6 +12,8 @@ const MarkdownEditorViewType = 'markdown-editor.editor'
 const WikiFileContextKey = 'markdown-editor.isWikiFile'
 const SupportedSchemes = new Set(['file', 'untitled'])
 const SupportedMarkdownExtensions = new Set(['.md', '.markdown'])
+const ExplicitOpenTtlMs = 5000
+const explicitCustomEditorOpens = new Map<string, number>()
 
 function debug(...args: any[]) {
   console.log(...args)
@@ -66,6 +68,21 @@ function isDiffContextForUri(uri: vscode.Uri) {
   )
 }
 
+function markExplicitCustomEditorOpen(uri: vscode.Uri) {
+  explicitCustomEditorOpens.set(uri.toString(), Date.now() + ExplicitOpenTtlMs)
+}
+
+function consumeExplicitCustomEditorOpen(uri: vscode.Uri) {
+  const key = uri.toString()
+  const expiresAt = explicitCustomEditorOpens.get(key)
+  if (!expiresAt) {
+    return false
+  }
+
+  explicitCustomEditorOpens.delete(key)
+  return expiresAt >= Date.now()
+}
+
 async function updateEditorContexts() {
   const target = getCommandTarget()
   await vscode.commands.executeCommand(
@@ -98,6 +115,7 @@ export function activate(context: vscode.ExtensionContext) {
           showError(`Markdown editor can only open local markdown files.`)
           return
         }
+        markExplicitCustomEditorOpen(target)
         await vscode.commands.executeCommand(
           'vscode.openWith',
           target,
@@ -188,6 +206,12 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel
   ) {
+    if (!consumeExplicitCustomEditorOpen(document.uri)) {
+      void vscode.commands.executeCommand('vscode.openWith', document.uri, 'default')
+      webviewPanel.dispose()
+      return
+    }
+
     const disposables: vscode.Disposable[] = []
     const fsPath = document.uri.fsPath
     const wiki = getWikiDocumentContext(document.uri)
@@ -439,6 +463,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
                 )
 
                 if (picked?.uri) {
+                  markExplicitCustomEditorOpen(picked.uri)
                   await vscode.commands.executeCommand(
                     'vscode.openWith',
                     picked.uri,
@@ -448,6 +473,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
                 break
               }
               case 'resolved':
+                markExplicitCustomEditorOpen(resolution.target)
                 await vscode.commands.executeCommand(
                   'vscode.openWith',
                   resolution.target,

@@ -44,7 +44,7 @@ export function setupCustomRenderer(
           payload.target
         )}" data-wiki-source="${escapeAttribute(source)}" title="Open wiki page ${escapeAttribute(
           payload.target
-        )}">${escapeHTML(displayText)}</span>`
+        )}" role="link" tabindex="0">${escapeHTML(displayText)}</span>`
       )
 
       lastIndex = WikiLinkPattern.lastIndex

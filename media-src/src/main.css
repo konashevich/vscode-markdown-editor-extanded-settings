@@ -83,7 +83,7 @@ body[data-use-vscode-theme-color="1"] .vditor.vditor--dark {
   margin: 0 0.1rem;
   border: 1px solid var(--vscode-textLink-foreground, #2b7cff);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--vscode-textLink-foreground, #2b7cff) 12%, transparent);
+  background: var(--vscode-badge-background, rgba(43, 124, 255, 0.14));
   color: var(--vscode-textLink-foreground, #2b7cff);
   cursor: pointer;
   font-weight: 600;
@@ -92,7 +92,7 @@ body[data-use-vscode-theme-color="1"] .vditor.vditor--dark {
 }
 
 .wiki-link-chip:hover {
-  background: color-mix(in srgb, var(--vscode-textLink-foreground, #2b7cff) 20%, transparent);
+  background: var(--vscode-button-secondaryHoverBackground, rgba(43, 124, 255, 0.22));
 }
 
 .wiki-link-chip:focus-visible {

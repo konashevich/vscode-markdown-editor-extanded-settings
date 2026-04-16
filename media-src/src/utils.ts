@@ -178,13 +178,19 @@ export function fixLinkClick() {
   const openWikiLink = (target: string) => {
     vscode.postMessage({ command: 'open-wikilink', target })
   }
+  const activateWikiLink = (element: HTMLElement | null) => {
+    if (!element?.dataset.wikiTarget) {
+      return false
+    }
+    openWikiLink(element.dataset.wikiTarget)
+    return true
+  }
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement | null
     const wikiElement = target?.closest<HTMLElement>('[data-wiki-link="1"]')
-    if (wikiElement?.dataset.wikiTarget) {
+    if (activateWikiLink(wikiElement)) {
       e.preventDefault()
       e.stopPropagation()
-      openWikiLink(wikiElement.dataset.wikiTarget)
       return
     }
 
@@ -193,6 +199,18 @@ export function fixLinkClick() {
       e.preventDefault()
       e.stopPropagation()
       openLink(linkElement.href)
+    }
+  })
+  document.addEventListener('keydown', (e) => {
+    const target = e.target as HTMLElement | null
+    const wikiElement = target?.closest<HTMLElement>('[data-wiki-link="1"]')
+    if (!wikiElement) {
+      return
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      e.stopPropagation()
+      activateWikiLink(wikiElement)
     }
   })
   window.open = (url: string, ...args: any[]) => {
