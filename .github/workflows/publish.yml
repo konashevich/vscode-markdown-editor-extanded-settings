@@ -14,6 +14,7 @@ jobs:
           cache: 'npm'
       - run: npm install
       - run: npm --prefix media-src install
+      - run: npm exec foy build
       - name: Publish to Marketplace
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT != '' && secrets.VSCE_PAT || secrets.VS_MARKETPLACE_TOKEN }}
