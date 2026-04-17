@@ -106,7 +106,7 @@
         {
           "command": "markdown-editor.openEditor",
           "when": "false"
-        },
+        }
       ]
     },
     "configuration": {
