@@ -100,6 +100,17 @@ body[data-use-vscode-theme-color="1"] .vditor.vditor--dark {
   outline-offset: 1px;
 }
 
+.wiki-link-chip[data-wiki-missing="1"] {
+  border-style: dashed;
+  color: var(--vscode-errorForeground, #f44747);
+  border-color: var(--vscode-errorForeground, #f44747);
+  background: rgba(244, 71, 71, 0.1);
+}
+
+.wiki-link-chip[data-wiki-missing="1"]:hover {
+  background: rgba(244, 71, 71, 0.18);
+}
+
 .vditor-reset table {
   display: table !important;
   table-layout: fixed !important;

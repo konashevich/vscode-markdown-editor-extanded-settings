@@ -66,6 +66,9 @@ function initVditor(msg) {
       const wikiEnabled = Boolean(msg.wiki && msg.wiki.enabled)
       setupCustomRenderer(window.vditor, {
         enabled: wikiEnabled,
+        knownPages: wikiEnabled && msg.wiki.pageKeys
+          ? new Set(msg.wiki.pageKeys as string[])
+          : undefined,
       })
       if (wikiEnabled && typeof msg.content === 'string' && msg.content.includes('[[')) {
         applyingExtensionUpdate = true

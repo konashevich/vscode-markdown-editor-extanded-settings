@@ -5,6 +5,7 @@ const WikiLinkPattern = /\[\[([^[\]\n]+?)\]\]/g
 
 interface WikiRendererOptions {
   enabled: boolean
+  knownPages?: Set<string>
 }
 
 export function setupCustomRenderer(
@@ -38,11 +39,14 @@ export function setupCustomRenderer(
       const source = match[0]
       const payload = parseWikiLinkPayload(match[1])
       const displayText = payload.label || payload.target
+      const isMissing = options.knownPages
+        ? !options.knownPages.has(normalizeWikiTarget(payload.target))
+        : false
 
       fragments.push(
         `<span class="wiki-link-chip" data-wiki-link="1" data-wiki-target="${escapeAttribute(
           payload.target
-        )}" data-wiki-source="${escapeAttribute(source)}" title="Open wiki page ${escapeAttribute(
+        )}" data-wiki-source="${escapeAttribute(source)}"${isMissing ? ' data-wiki-missing="1"' : ''} title="${isMissing ? 'Missing wiki page' : 'Open wiki page'} ${escapeAttribute(
           payload.target
         )}" role="link" tabindex="0">${escapeHTML(displayText)}</span>`
       )
@@ -116,4 +120,14 @@ const HtmlEscapeMap: Record<string, string> = {
   '>': '&gt;',
   '"': '&quot;',
   "'": '&#39;',
+}
+
+function normalizeWikiTarget(target: string): string {
+  return target
+    .trim()
+    .toLowerCase()
+    .replace(/\.(?:md|markdown)$/i, '')
+    .replace(/[ _]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }

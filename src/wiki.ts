@@ -180,3 +180,14 @@ export async function collectWikiMarkdownFiles(root: vscode.Uri) {
 
   return results
 }
+
+export async function getWikiPageKeys(root: vscode.Uri): Promise<string[]> {
+  const files = await collectWikiMarkdownFiles(root)
+  const keys = new Set<string>()
+  for (const file of files) {
+    for (const key of getWikiKeys(root, file)) {
+      keys.add(key)
+    }
+  }
+  return Array.from(keys)
+}

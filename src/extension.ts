@@ -3,6 +3,7 @@ import * as NodePath from 'path'
 import {
   collectWikiMarkdownFiles,
   getWikiDocumentContext,
+  getWikiPageKeys,
   getWikiRoot,
   isWikiFile,
   resolveWikiLink,
@@ -58,21 +59,6 @@ function getCommandTarget(uri?: vscode.Uri) {
   }
 
   return undefined
-}
-
-function showWikiStatus(uri?: vscode.Uri) {
-  const target = getCommandTarget(uri)
-  const root = target ? getWikiRoot(target) : undefined
-  if (!target || !root) {
-    return vscode.window.showInformationMessage(
-      '[markdown-editor] Wiki links are enabled for Markdown files inside a wiki folder.'
-    )
-  }
-
-  const wikiRootLabel = vscode.workspace.asRelativePath(root, false)
-  return vscode.window.showInformationMessage(
-    `[markdown-editor] Wiki links are enabled for this file. Root: ${wikiRootLabel}`
-  )
 }
 
 function isDiffContextForUri(uri: vscode.Uri) {
@@ -149,13 +135,6 @@ export function activate(context: vscode.ExtensionContext) {
           return
         }
         await vscode.commands.executeCommand('vscode.openWith', target, 'default')
-      }
-    ),
-    vscode.commands.registerCommand(
-      'markdown-editor.showWikiStatus',
-      async (uri?: vscode.Uri, ...args) => {
-        debug('command', uri, args)
-        await showWikiStatus(uri)
       }
     ),
     vscode.window.registerCustomEditorProvider(
@@ -262,7 +241,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         cdn?: string
         options?: any
         theme?: 'dark' | 'light'
-        wiki?: ReturnType<typeof getWikiDocumentContext>
+        wiki?: any
       } = { options: void 0 }
     ) => {
       const content = document.getText()
@@ -351,7 +330,15 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         debug('msg from webview review', message, webviewPanel.active)
 
         switch (message.command) {
-          case 'ready':
+          case 'ready': {
+            let wikiInit: any = wiki
+            if (wiki.enabled) {
+              const root = getWikiRoot(document.uri)
+              if (root) {
+                const pageKeys = await getWikiPageKeys(root)
+                wikiInit = { ...wiki, pageKeys }
+              }
+            }
             await postUpdate({
               type: 'init',
               cdn: vditorBaseUri,
@@ -371,9 +358,10 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
                 vscode.ColorThemeKind.HighContrast)
                   ? 'dark'
                   : 'light',
-              wiki,
+              wiki: wikiInit,
             })
             break
+          }
           case 'save-options':
             await this._context.globalState.update(KeyVditorOptions, message.options)
             break
@@ -398,9 +386,6 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
               'markdown-editor.openTextEditor',
               document.uri
             )
-            break
-          case 'show-wiki-status':
-            await showWikiStatus(document.uri)
             break
           case 'navigate-back':
             await vscode.commands.executeCommand('workbench.action.navigateBack')

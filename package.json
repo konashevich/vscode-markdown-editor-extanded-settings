@@ -27,7 +27,6 @@
     "onLanguage:markdown",
     "onCommand:markdown-editor.openEditor",
     "onCommand:markdown-editor.openTextEditor",
-    "onCommand:markdown-editor.showWikiStatus",
     "onCustomEditor:markdown-editor.editor"
   ],
   "repository": {
@@ -53,15 +52,6 @@
         "icon": {
           "light": "media/open-editor-light.svg",
           "dark": "media/open-editor-dark.svg"
-        }
-      },
-      {
-        "command": "markdown-editor.showWikiStatus",
-        "title": "Wiki File",
-        "category": "markdown-editor",
-        "icon": {
-          "light": "media/wiki-chip-light.svg",
-          "dark": "media/wiki-chip-dark.svg"
         }
       }
     ],
@@ -117,10 +107,6 @@
           "command": "markdown-editor.openEditor",
           "when": "false"
         },
-        {
-          "command": "markdown-editor.showWikiStatus",
-          "when": "false"
-        }
       ]
     },
     "configuration": {
