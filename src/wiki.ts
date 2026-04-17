@@ -151,7 +151,7 @@ function getWikiKeys(root: vscode.Uri, candidate: vscode.Uri) {
   )
 }
 
-async function collectWikiMarkdownFiles(root: vscode.Uri) {
+export async function collectWikiMarkdownFiles(root: vscode.Uri) {
   const results: vscode.Uri[] = []
   const queue: vscode.Uri[] = [root]
 

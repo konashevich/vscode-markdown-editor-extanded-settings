@@ -57,27 +57,29 @@ export function setupCustomRenderer(
     return [fragments.join(''), WalkContinue]
   }
 
+  const renderInlineHTML = (node: any, entering: boolean) => {
+    if (!entering) {
+      return ['', WalkContinue]
+    }
+
+    const html = node.TokensStr()
+    const match = html.match(/data-wiki-source="([^"]+)"/)
+    if (match) {
+      return [unescapeHTML(match[1]), WalkContinue]
+    }
+
+    return [html, WalkContinue]
+  }
+
   lute.SetJSRenderers({
     renderers: {
       Md2VditorIRDOM: { renderText },
       Md2VditorDOM: { renderText },
       Md2VditorSVDOM: { renderText },
       Md2HTML: { renderText },
-      HTML2Md: {
-        renderInlineHTML: (node: any, entering: boolean) => {
-          if (!entering) {
-            return ['', WalkContinue]
-          }
-
-          const html = node.TokensStr()
-          const match = html.match(/data-wiki-source="([^"]+)"/)
-          if (match) {
-            return [unescapeHTML(match[1]), WalkContinue]
-          }
-
-          return [html, WalkContinue]
-        },
-      },
+      HTML2Md: { renderInlineHTML },
+      VditorIRDOM2Md: { renderInlineHTML },
+      VditorDOM2Md: { renderInlineHTML },
     },
   })
 }

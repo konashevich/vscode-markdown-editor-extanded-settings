@@ -1,6 +1,9 @@
 const Langs = {
   en_US: {
     save: 'Save',
+    wikiFile: 'Wiki File',
+    wikiPages: 'Wiki Pages',
+    navigateBack: 'Go Back',
     editInVsCode: 'Edit In VS Code',
     copyMarkdown: 'Copy Markdown',
     copyHtml: 'Copy HTML',
@@ -24,6 +27,9 @@ const Langs = {
   },
   zh_CN: {
     save: '保存',
+    wikiFile: 'Wiki 文件',
+    wikiPages: 'Wiki 页面',
+    navigateBack: '返回',
     editInVsCode: '在 VS Code 中编辑',
     copyMarkdown: '复制 Markdown',
     copyHtml: '复制 HTML',

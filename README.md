@@ -36,7 +36,7 @@ This fork keeps the original custom Markdown editor workflow, then extends it wi
 - Offline/local runtime assets for the webview editor, including Mermaid support
 - Responsive table layout that follows the current editor width
 - Explorer and editor-tab context menu integration
-- Wiki page detection with a title-bar wiki chip for Markdown files inside a `wiki` folder
+- Wiki page detection with a toolbar wiki button inside the custom editor for Markdown files inside a `wiki` folder
 - Wiki-style `[[page-name]]` links that open other Markdown pages from the same wiki tree
 - Keyboard shortcuts for opening the custom editor and returning to the text editor
 
@@ -47,7 +47,7 @@ For the broader editing/rendering feature set exposed by Vditor, see [vditor](ht
 This fork is packaged independently. Install the generated VSIX directly:
 
 ```bash
-code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.30.vsix
+code --install-extension ./artifacts/markdown-editor-extended-settings-0.2.31.vsix
 
 ```
 
@@ -74,7 +74,7 @@ Use any of the following while the custom editor is active:
 
 Markdown files located anywhere under a folder named `wiki` are treated as wiki pages.
 
-- The editor title bar shows a `Wiki` chip for recognised wiki files.
+- The custom editor toolbar shows a `Wiki` button for recognised wiki files.
 - `[[page-name]]` links are rendered as clickable wiki chips inside the custom editor.
 - Wiki links resolve against Markdown files under the same `wiki` folder tree.
 

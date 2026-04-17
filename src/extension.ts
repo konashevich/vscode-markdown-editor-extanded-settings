@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import * as NodePath from 'path'
 import {
+  collectWikiMarkdownFiles,
   getWikiDocumentContext,
   getWikiRoot,
   isWikiFile,
@@ -57,6 +58,21 @@ function getCommandTarget(uri?: vscode.Uri) {
   }
 
   return undefined
+}
+
+function showWikiStatus(uri?: vscode.Uri) {
+  const target = getCommandTarget(uri)
+  const root = target ? getWikiRoot(target) : undefined
+  if (!target || !root) {
+    return vscode.window.showInformationMessage(
+      '[markdown-editor] Wiki links are enabled for Markdown files inside a wiki folder.'
+    )
+  }
+
+  const wikiRootLabel = vscode.workspace.asRelativePath(root, false)
+  return vscode.window.showInformationMessage(
+    `[markdown-editor] Wiki links are enabled for this file. Root: ${wikiRootLabel}`
+  )
 }
 
 function isDiffContextForUri(uri: vscode.Uri) {
@@ -139,19 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
       'markdown-editor.showWikiStatus',
       async (uri?: vscode.Uri, ...args) => {
         debug('command', uri, args)
-        const target = getCommandTarget(uri)
-        const root = target ? getWikiRoot(target) : undefined
-        if (!target || !root) {
-          vscode.window.showInformationMessage(
-            '[markdown-editor] Wiki links are enabled for Markdown files inside a wiki folder.'
-          )
-          return
-        }
-
-        const wikiRootLabel = vscode.workspace.asRelativePath(root, false)
-        vscode.window.showInformationMessage(
-          `[markdown-editor] Wiki links are enabled for this file. Root: ${wikiRootLabel}`
-        )
+        await showWikiStatus(uri)
       }
     ),
     vscode.window.registerCustomEditorProvider(
@@ -395,6 +399,42 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
               document.uri
             )
             break
+          case 'show-wiki-status':
+            await showWikiStatus(document.uri)
+            break
+          case 'navigate-back':
+            await vscode.commands.executeCommand('workbench.action.navigateBack')
+            break
+          case 'list-wiki-pages': {
+            const wikiRoot = getWikiRoot(document.uri)
+            if (!wikiRoot) {
+              break
+            }
+            const allPages = await collectWikiMarkdownFiles(wikiRoot)
+            allPages.sort((a, b) =>
+              NodePath.basename(a.fsPath).localeCompare(NodePath.basename(b.fsPath))
+            )
+            const picked = await vscode.window.showQuickPick(
+              allPages.map((page) => ({
+                label: NodePath.basename(page.fsPath, NodePath.extname(page.fsPath)),
+                description: vscode.workspace.asRelativePath(page, false),
+                uri: page,
+              })),
+              {
+                title: 'Wiki Pages',
+                placeHolder: 'Select a wiki page to open',
+              }
+            )
+            if (picked?.uri) {
+              markExplicitCustomEditorOpen(picked.uri)
+              await vscode.commands.executeCommand(
+                'vscode.openWith',
+                picked.uri,
+                MarkdownEditorViewType
+              )
+            }
+            break
+          }
           case 'upload': {
             const assetsFolder = MarkdownEditorProvider.getAssetsFolder(document.uri)
             try {
@@ -441,14 +481,31 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
               case 'invalid':
                 showError(`Invalid wiki link target.`)
                 break
-              case 'missing':
-                showError(
+              case 'missing': {
+                const createChoice = await vscode.window.showWarningMessage(
                   `Wiki page "${message.target}" was not found under "${vscode.workspace.asRelativePath(
                     resolution.root,
                     false
-                  )}".`
+                  )}".`,
+                  'Create Page'
                 )
+                if (createChoice === 'Create Page') {
+                  const newFileName = resolution.key.replace(/\//g, '-') + '.md'
+                  const newFileUri = vscode.Uri.joinPath(resolution.root, newFileName)
+                  const heading = resolution.key.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+                  await vscode.workspace.fs.writeFile(
+                    newFileUri,
+                    Buffer.from(`# ${heading}\n`)
+                  )
+                  markExplicitCustomEditorOpen(newFileUri)
+                  await vscode.commands.executeCommand(
+                    'vscode.openWith',
+                    newFileUri,
+                    MarkdownEditorViewType
+                  )
+                }
                 break
+              }
               case 'ambiguous': {
                 const picked = await vscode.window.showQuickPick(
                   resolution.candidates.map((candidate) => ({

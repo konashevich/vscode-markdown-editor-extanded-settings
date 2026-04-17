@@ -3,7 +3,7 @@
   "displayName": "Markdown Editor — Extended Settings",
   "icon": "media/logo.png",
   "description": "A full-featured WYSIWYG editor for markdown.",
-  "version": "0.2.30",
+  "version": "0.2.31",
   "publisher": "oleksiiko",
   "author": "Oleksii Konashevich",
   "license": "MIT",
@@ -100,22 +100,12 @@
       ],
       "editor/title": [
         {
-          "when": "markdown-editor.isWikiFile",
-          "command": "markdown-editor.showWikiStatus",
-          "group": "navigation@5"
-        },
-        {
           "when": "!isInDiffEditor && activeCustomEditorId != markdown-editor.editor && (resourceExtname == .md || resourceExtname == .markdown) && (resourceScheme == file || resourceScheme == untitled)",
           "command": "markdown-editor.openEditor",
           "group": "navigation@10"
         }
       ],
       "editor/title/context": [
-        {
-          "when": "markdown-editor.isWikiFile",
-          "command": "markdown-editor.showWikiStatus",
-          "group": "navigation@5"
-        },
         {
           "when": "activeCustomEditorId == markdown-editor.editor",
           "command": "markdown-editor.openTextEditor",
@@ -125,6 +115,10 @@
       "commandPalette": [
         {
           "command": "markdown-editor.openEditor",
+          "when": "false"
+        },
+        {
+          "command": "markdown-editor.showWikiStatus",
           "when": "false"
         }
       ]

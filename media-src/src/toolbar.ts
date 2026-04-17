@@ -58,7 +58,18 @@ function insertMarkdownLink() {
 const editInVsCodeIcon =
 	'<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path fill="currentColor" d="M6 2h8.6L19 6.4V11h-2V7h-3V4H8v16h6v2H6z"/><path fill="currentColor" d="M13 13h5.17l-1.58-1.59L18 10l4 4-4 4-1.41-1.41L18.17 15H13z"/></svg>'
 
-export const toolbar = [
+const wikiPagesIcon =
+	'<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path fill="currentColor" d="M5 4.25A2.25 2.25 0 0 1 7.25 2h9.5A2.25 2.25 0 0 1 19 4.25v15.5A2.25 2.25 0 0 1 16.75 22h-9.5A2.25 2.25 0 0 1 5 19.75zm2 1.25v13h10V5.5zm1.22 2h1.24l1.12 4.4 1.2-4.4h1l1.18 4.4 1.13-4.4h1.24L14.9 16h-1.03l-1.38-4.97L11.07 16H10z"/></svg>'
+
+const backIcon =
+	'<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>'
+
+interface ToolbarOptions {
+	wikiEnabled?: boolean
+}
+
+export function createToolbar(options: ToolbarOptions = {}) {
+	const toolbarItems = [
 	{
 	  hotkey: '⌘s',
 	  name: 'save',
@@ -109,6 +120,34 @@ export const toolbar = [
 	'undo',
 	'redo',
 	'|',
+	...(options.wikiEnabled
+	  ? [
+		  {
+			name: 'navigate-back',
+			tipPosition: 's',
+			tip: t('navigateBack'),
+			className: 'right',
+			icon: backIcon,
+			click() {
+			  vscode.postMessage({
+				command: 'navigate-back',
+			  })
+			},
+		  },
+		  {
+			name: 'wiki-pages',
+			tipPosition: 's',
+			tip: t('wikiPages'),
+			className: 'right',
+			icon: wikiPagesIcon,
+			click() {
+			  vscode.postMessage({
+				command: 'list-wiki-pages',
+			  })
+			},
+		  },
+	    ]
+	  : []),
 	{
 	  name: 'edit-in-vscode',
 	  tipPosition: 's',
@@ -197,10 +236,13 @@ export const toolbar = [
 		'help',
 	  ],
 	},
-  ].map((it: any) => {
+	]
+
+	return toolbarItems.map((it: any) => {
 	if (typeof it === 'string') {
 	  it = { name: it }
 	}
 	it.tipPosition = it.tipPosition || 's'
 	return it
   })
+}

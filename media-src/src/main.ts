@@ -16,7 +16,7 @@ import Vditor from 'vditor'
 import { format } from 'date-fns'
 import 'vditor/dist/index.css'
 import { t, lang } from './lang'
-import { toolbar } from './toolbar'
+import { createToolbar } from './toolbar'
 import { fixTableIr } from './fix-table-ir'
 import { setupCustomRenderer } from './custom-renderer'
 import './main.css'
@@ -57,7 +57,9 @@ function initVditor(msg) {
     value: msg.content,
     mode: 'ir',
     cache: { enable: false },
-    toolbar,
+    toolbar: createToolbar({
+      wikiEnabled: Boolean(msg.wiki && msg.wiki.enabled),
+    }),
     toolbarConfig: { pin: true },
     ...defaultOptions,
     after() {
@@ -66,7 +68,12 @@ function initVditor(msg) {
         enabled: wikiEnabled,
       })
       if (wikiEnabled && typeof msg.content === 'string' && msg.content.includes('[[')) {
-        vditor.setValue(msg.content)
+        applyingExtensionUpdate = true
+        try {
+          vditor.setValue(msg.content)
+        } finally {
+          setTimeout(() => { applyingExtensionUpdate = false }, 0)
+        }
       }
       fixDarkTheme()
       handleToolbarClick()
