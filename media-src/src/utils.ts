@@ -96,9 +96,7 @@ export function saveVditorOptions() {
 }
 // toolbar 点击时保存配置
 export function handleToolbarClick() {
-  $(
-    '.vditor-toolbar .vditor-panel--left button, .vditor-toolbar .vditor-panel--arrow button'
-  ).on('click', (e) => {
+  $('.vditor-toolbar').on('click', '.vditor-panel--left button, .vditor-panel--arrow button, .vditor-panel button', (e) => {
     setTimeout(() => {
       saveVditorOptions()
     }, 500)

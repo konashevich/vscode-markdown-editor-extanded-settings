@@ -35,6 +35,9 @@ function initVditor(msg) {
         theme: {
           current: 'dark',
         },
+        hljs: {
+          style: 'atom-one-dark-reasonable',
+        },
       }
     })
   }
